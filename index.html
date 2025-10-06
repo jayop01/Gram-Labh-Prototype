@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gram-Labh Margdarshak (Prototype)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="mobile-container">
+        <header>
+            <span class="back-btn" onclick="showScreen('home')">←</span>
+            <span class="title" id="header-title">मुख्यपृष्ठ (Home)</span>
+            <span class="user-profile">👤</span>
+        </header>
+
+        <div class="screen active" id="home">
+            <h2 class="welcome-text">👋 नमस्ते, सविताताई! (Namaste, Savitatai!)</h2>
+            <p class="subtitle">तुमचा तालुका: शिरूर (Shirur) | आजची तारीख: 29 सप्टेंबर</p>
+
+            <div class="card-grid">
+                <div class="card" onclick="showScreen('production')">
+                    <h3>🌱 उत्पादन नियोजक</h3>
+                    <p>What to grow?</p>
+                </div>
+                <div class="card" onclick="showScreen('pricing')">
+                    <h3>💰 दर सल्लागार</h3>
+                    <p>What to charge?</p>
+                </div>
+                <div class="card" onclick="showScreen('competition')">
+                    <h3>👥 स्पर्धा स्नॅपशॉट</h3>
+                    <p>Who sells what?</p>
+                </div>
+            </div>
+
+            <div class="demand-radar">
+                <h3>⚡ मार्केट डिमांड रडार (Market Demand Radar)</h3>
+                <p>🟢 **मिरची (Chilli)** डिमांड ⬆️ 25% (पुणे मार्केट)</p>
+                <p>🟡 **कांदा (Onion)** स्टेबल. दर: ⬇️ 5% (नाशिक मार्केट)</p>
+                <p>🔴 **द्राक्षे (Grapes)** मार्केट संतृप्त (Saturated).</p>
+            </div>
+        </div>
+
+        <div class="screen" id="production">
+            <h2>उत्पादन नियोजक (Production Planner)</h2>
+            <p class="subtitle">तुमचा जमिनीचा प्रकार आणि स्थिती निवडा:</p>
+
+            <div class="input-section">
+                <label for="soil-type">जमिनीचा प्रकार (Soil Type):</label>
+                <select id="soil-type">
+                    <option value="Black">काळी माती (Black Soil)</option>
+                    <option value="Red">लाल माती (Red Soil)</option>
+                    <option value="Alluvial">गाळाची माती (Alluvial Soil)</option>
+                </select>
+                <label for="rainfall">सरासरी पाऊस (Rainfall - Simulated):</label>
+                <select id="rainfall">
+                    <option value="High">जास्त (High)</option>
+                    <option value="Medium">मध्यम (Medium)</option>
+                    <option value="Low">कमी (Low)</option>
+                </select>
+            </div>
+
+            <button class="action-btn" onclick="runKNN()">शिफारस मिळवा (Get Recommendation)</button>
+
+            <div class="reco-list" id="production-recommendations">
+                <p style="text-align: center; color: #666; margin-top: 20px;">वरचे बटण दाबून शिफारस मिळवा.</p>
+            </div>
+        </div>
+
+        <div class="screen" id="pricing">
+            <h2>दर सल्लागार (Pricing Advisor)</h2>
+            <p class="subtitle">तुमच्या उत्पादनाचा अंदाजित खर्च आणि बाजार दर</p>
+
+            <div class="input-section">
+                <label for="cost">उत्पादन खर्च (Cost/Kg):</label>
+                <input type="number" id="cost" value="15" placeholder="₹ per kg">
+            </div>
+
+            <div class="reco-list">
+                <div class="reco-item best-price">
+                    <h4>तुमचा विक्री दर (Recommended Price)</h4>
+                    <p class="price-range">**₹ 28 - ₹ 32 / किलो**</p>
+                    <p class="small-text">बाजारपेठ: जवळचे APMC हब</p>
+                </div>
+            </div>
+            
+            <p class="current-market-data">
+                **लाइव्ह APMC दर (Live Rate):** ₹ 25.50 / किलो <br>
+                **विक्रीचा उत्तम काळ:** पुढील 3 दिवस (Demand Peak)
+            </p>
+        </div>
+
+        <div class="screen" id="competition">
+            <h2>स्पर्धा स्नॅपशॉट (Competition Snapshot)</h2>
+            <p class="subtitle">उत्पादन: हळद पावडर (Turmeric Powder)</p>
+
+            <div class="reco-list">
+                <div class="reco-item comp-item">
+                    <h4>समीरा उद्योग (Sameera Udyog)</h4>
+                    <p>💰 **किंमत:** ₹ 250 / 500 ग्रॅम</p>
+                    <p>📦 **पॅकेजिंग:** आकर्षक सीलबंद पाउच</p>
+                    <p>📍 **विक्री चॅनेल:** WhatsApp Groups आणि लोकल ट्रेडर्स</p>
+                </div>
+                <div class="reco-item comp-item">
+                    <h4>वसंत मसाले (Vasant Masale)</h4>
+                    <p>💰 **किंमत:** ₹ 280 / 500 ग्रॅम</p>
+                    <p>📦 **पॅकेजिंग:** साधे प्लास्टिक बॉक्स</p>
+                    <p>📍 **विक्री चॅनेल:** डायरेक्ट ग्राहकांना (Direct-to-Consumer)</p>
+                </div>
+            </div>
+            <button class="action-btn" onclick="alert('This feature helps you adjust your packaging and price to compete locally!')">स्पर्धा विश्लेषण करा</button>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
