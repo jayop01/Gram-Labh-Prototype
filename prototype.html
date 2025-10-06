@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gram-Labh Margdarshak (Prototype)</title>
+    
+    <!-- CSS STYLES (Inline for portability) -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .mobile-container { width: 100%; max-width: 400px; min-height: 800px; background-color: #ffffff; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); border-radius: 25px; overflow: hidden; display: flex; flex-direction: column; }
+        header { background-color: #007bff; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 1.1em; font-weight: bold; border-top-left-radius: 25px; border-top-right-radius: 25px; }
+        .back-btn { cursor: pointer; font-size: 1.5em; padding-right: 15px; }
+        .user-profile { cursor: pointer; font-size: 1.2em; }
+        .screen { padding: 20px; flex-grow: 1; overflow-y: auto; display: none; background-color: #ffffff; }
+        .screen.active { display: block; }
+        .welcome-text { color: #333; margin-top: 0; font-size: 1.4em; }
+        .subtitle { color: #666; margin-bottom: 20px; font-size: 0.9em; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .card { background-color: #e6f0ff; border: 1px solid #007bff; border-radius: 12px; padding: 15px; cursor: pointer; transition: transform 0.2s; text-align: center; box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1); }
+        .card:hover { background-color: #cce0ff; transform: translateY(-2px); }
+        .card h3 { margin-top: 0; margin-bottom: 5px; color: #007bff; font-size: 1.1em; }
+        .card p { margin: 0; color: #555; font-size: 0.8em; }
+        .card.special-card { background-color: #d8f5d8; border: 1px solid #28a745; box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2); }
+        .card.special-card h3 { color: #28a745; }
+        .action-btn { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer; margin-top: 15px; transition: background-color 0.2s; }
+        .action-btn:hover { background-color: #218838; }
+        .action-btn.view-detail-btn {
+            display: inline-block; /* Treat the link like a small button */
+            width: 100px;
+            padding: 5px;
+            font-size: 0.8em;
+            margin-top: 5px;
+            background-color: #007bff;
+            text-decoration: none; /* Remove underline */
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .reco-item { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 10px; position: relative; }
+        .reco-item.best { border-left: 5px solid #28a745; background-color: #d4edda; }
+        .subsidy-box { margin-top: 10px; padding: 10px; background-color: #e6f0ff; border-radius: 4px; border-left: 5px solid; font-size: 0.9em; color: #333; font-weight: bold; line-height: 1.4; }
+        .subsidy-box .scheme-name { font-weight: normal; color: #555; display: block; margin-top: 3px; }
+        .profile-input input, .input-section input, .input-section select { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; margin-bottom: 10px; display: block; }
+        .input-section label { display: block; margin-bottom: 3px; font-weight: bold; color: #555; } /* Ensures labels are block and separate from input */
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        .role-card { background-color: #f7f7ff; border: 2px solid #007bff; padding: 25px; cursor: pointer; text-align: center; }
+        .reco-item.best-price { border-left: 5px solid #ffc107; background-color: #fff8e6; }
+        .price-range { font-size: 1.6em; color: #d89b00; font-weight: bold; margin: 5px 0; }
+        .comparison-alert { padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1em; line-height: 1.4; text-align: center; margin-bottom: 15px; }
+        .comparison-alert.alert-ok { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .comparison-alert.alert-high { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .comparison-alert.alert-low { background-color: #ffeeb3; color: #856404; border: 1px solid #ffeeba; }
+        .switch-btn { cursor: pointer; font-size: 1.5em; padding-left: 15px; }
+        #quick-switch-modal { position: absolute; top: 60px; right: 15px; width: 220px; background: #ffffff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); z-index: 1000; display: none; padding: 5px 0; }
+        .modal-item { padding: 10px 15px; font-size: 0.9em; cursor: pointer; color: #333; transition: background-color 0.1s; }
+        .modal-item:hover { background-color: #f0f0f0; }
+        .modal-item.reset-btn { border-top: 1px solid #eee; color: #dc3545; }
+        .lang-switch-btn { 
+            background: none; 
+            border: 1px solid white; 
+            color: white; 
+            padding: 5px 8px; 
+            border-radius: 4px; 
+            font-size: 0.7em; 
+            font-weight: bold;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header id="app-header">
+            <span class="back-btn" onclick="goBack()">←</span>
+            <span class="title" id="header-title" data-key="app_title">मुख्यपृष्ठ (Home)</span>
+            
+            <!-- NEW LANGUAGE SWITCH BUTTON -->
+            <div style="display: flex; align-items: center;">
+                <button class="lang-switch-btn" id="lang-button" onclick="switchLanguage()"></button>
+                <span class="user-profile switch-btn" onclick="toggleQuickSwitchModal()">👤</span>
+            </div>
+        </header>
+
+        <!-- NEW QUICK SWITCH MODAL (For testing roles) -->
+        <div id="quick-switch-modal">
+            <div class="modal-item" onclick="quickSwitchAccount('farmer')">🧑‍🌾 <span data-key="switch_farmer">शेतकरी (Farmer)</span></div>
+            <div class="modal-item" onclick="quickSwitchAccount('trader')">🚚 <span data-key="switch_trader">व्यापारी (Trader)</span></div>
+            <div class="modal-item reset-btn" onclick="localStorage.clear(); checkUserStatus();"><span data-key="switch_reset">नवीन नोंदणी करा</span></div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- 1. ONBOARDING / AUTHENTICATION SCREENS -->
+        <!-- ========================================================== -->
+        <div class="screen active" id="loading">
+            <h2 class="welcome-text text-center text-blue-600" data-key="loading_title">लोड होत आहे...</h2>
+            <p class="subtitle text-center" data-key="loading_subtitle">स्थानिक डेटा तपासत आहे...</p>
+        </div>
+        <div class="screen" id="onboarding">
+            <h2 class="welcome-text" style="color:#007bff;" data-key="welcome_title">👋 ग्राम-लाभ मध्ये आपले स्वागत!</h2>
+            <p class="subtitle" data-key="register_subtitle">सेवा वापरण्यासाठी कृपया नोंदणी करा।</p>
+            <form id="reg-form">
+                <div class="input-section">
+                    <label for="reg-name" data-key="label_name">नाव (Full Name):</label>
+                    <input type="text" id="reg-name" required placeholder="उदा. जय जयस्वाल" class="rounded p-2 border">
+                </div>
+                <div class="input-section">
+                    <label for="reg-phone" data-key="label_phone">फोन नंबर (Phone):</label>
+                    <input type="tel" id="reg-phone" required placeholder="10 अंकी नंबर" class="rounded p-2 border">
+                </div>
+                <div class="input-section">
+                    <label for="reg-taluka" data-key="label_taluka">तालुका (Taluka):</label>
+                    <input type="text" id="reg-taluka" required placeholder="उदा. शिरूर" class="rounded p-2 border">
+                </div>
+                <button type="submit" class="action-btn" data-key="btn_next">पुढील चरण (Next Step) →</button>
+            </form>
+        </div>
+
+        <div class="screen" id="role-select">
+            <h2 class="welcome-text" style="color:#007bff;" data-key="role_select_title">आपली भूमिका निवडा</h2>
+            <p class="subtitle" data-key="role_select_subtitle">तुम्ही मुख्यतः काय आहात?</p>
+            <div class="card-grid role-grid">
+                <div class="card role-card" onclick="selectRole('Farmer/Seller')">
+                    <h3>🧑‍🌾 <span data-key="role_farmer_h">शेतकरी / विक्रेता</span></h3>
+                    <p data-key="role_farmer_p">उत्पादन, किंमत आणि अनुदान सल्ला हवा।</p>
+                </div>
+                <div class="card role-card" onclick="selectRole('Trader')">
+                    <h3>🚚 <span data-key="role_trader_h">व्यापारी / खरेदीदार</span></h3>
+                    <p data-key="role_trader_p">बाजार दर, मागणी आणि लॉजिस्टिक्स माहिती हवी।</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- 2. ROLE-SPECIFIC DASHBOARDS -->
+        <!-- ========================================================== -->
+
+        <!-- FARMER DASHBOARD -->
+        <div class="screen" id="farmer-dashboard">
+            <h2 class="welcome-text" id="farmer-welcome">👋 नमस्ते!</h2>
+            <p class="subtitle" id="farmer-info-display"></p>
+            <div class="card-grid role-feature-grid">
+                <div class="card" onclick="showScreen('production')"><h3>🌱 <span data-key="dash_planner_h">नियोजक</span></h3><p data-key="dash_planner_p">उत्पादन सल्ला</p></div>
+                <div class="card special-card" onclick="showScreen('subsidy-info-page')"><h3>💰 <span data-key="dash_subsidy_h">अनुदान</span></h3><p data-key="dash_subsidy_p">योजना तपासा</p></div>
+                <div class="card" onclick="showScreen('pricing')"><h3>📈 <span data-key="dash_price_h">दर विश्लेषण</span></h3><p data-key="dash_price_p">किंमत ठरवा</p></div>
+                <div class="card" onclick="showScreen('list-product-form')"><h3>➕ <span data-key="dash_add_p_h">उत्पादन जोडा</span></h3><p data-key="dash_add_p_p">विक्रीसाठी लिस्ट करा</p></div>
+                <div class="card" onclick="showScreen('trader-requests-for-farmer')"><h3>📦 <span data-key="dash_buyer_req_h">खरेदीदार विनंत्या</span></h3><p data-key="dash_buyer_req_p">मागणी पहा</p></div>
+            </div>
+            <div class="demand-radar mt-6 bg-yellow-100 p-4 rounded-xl border-l-4 border-yellow-500">
+                <h3 class="text-yellow-900 font-bold mb-2" data-key="dash_my_listing">⚡ माझी लिस्टिंग (My Products)</h3>
+                <div class="reco-list" id="my-farm-listings"></div>
+            </div>
+        </div>
+
+        <!-- TRADER DASHBOARD -->
+        <div class="screen" id="trader-dashboard">
+            <h2 class="welcome-text" id="trader-welcome">👋 नमस्ते!</h2>
+            <p class="subtitle" id="trader-info-display"></p>
+            <div class="card-grid role-feature-grid">
+                <div class="card" onclick="showScreen('list-shop-form')"><h3>📝 <span data-key="dash_add_req_h">विनंती नोंदवा</span></h3><p data-key="dash_add_req_p">माल खरेदीची विनंती</p></div>
+                <div class="card special-card" onclick="showScreen('competition')"><h3>🛒 <span data-key="dash_market_h">स्थानिक बाजारपेठ</span></h3><p data-key="dash_market_p">शेतकरी उत्पादने</p></div>
+                <div class="card" onclick="showScreen('pricing')"><h3>📈 <span data-key="dash_price_h">दर विश्लेषण</span></h3><p data-key="dash_price_t_p">खरेदीची किंमत ठरवा</p></div>
+            </div>
+            <div class="demand-radar mt-6 bg-blue-100 p-4 rounded-xl border-l-4 border-blue-500">
+                <h3 class="text-blue-900 font-bold mb-2" data-key="dash_my_req">📢 माझ्या विनंत्या (My Requests)</h3>
+                <div class="reco-list" id="my-trader-requests"></div>
+            </div>
+        </div>
+        
+        <!-- ========================================================== -->
+        <!-- 3. FEATURE SCREENS -->
+        <!-- ========================================================== -->
+
+        <!-- USER PROFILE SCREEN -->
+        <div class="screen" id="user-profile">
+            <h2 class="text-blue-600" data-key="profile_title">माझा प्रोफाइल (My Profile)</h2>
+            <form id="profile-edit-form">
+                <div class="profile-input">
+                    <label data-key="label_name_p">नाव:</label>
+                    <input type="text" id="profile-name" readonly>
+                </div>
+                <div class="profile-input">
+                    <label data-key="label_phone_p">फोन नंबर:</label>
+                    <input type="tel" id="profile-phone" readonly>
+                </div>
+                <div class="profile-input">
+                    <label data-key="label_taluka_p">तालुका:</label>
+                    <input type="text" id="profile-taluka" readonly>
+                </div>
+                <div class="profile-input">
+                    <label data-key="label_role_p">भूमिका:</label>
+                    <input type="text" id="profile-role" readonly>
+                </div>
+                <button type="button" class="action-btn" onclick="goBack()" data-key="btn_back">मागे जा</button>
+            </form>
+        </div>
+
+        <!-- FARMER: TRADER REQUESTS SCREEN -->
+        <div class="screen" id="trader-requests-for-farmer">
+            <h2 class="text-blue-600" data-key="buyer_req_title">खरेदीदार विनंत्या (Buyer Requests)</h2>
+            <p class="subtitle" data-key="buyer_req_subtitle">तुमच्या मालाची मागणी करणारे व्यापारी।</p>
+            <div class="reco-list" id="trader-request-listings"></div>
+        </div>
+
+        <!-- TRADER: MARKETPLACE SCREEN -->
+        <div class="screen" id="competition">
+            <h2 class="text-blue-600" data-key="market_title">🛒 स्थानिक शेतकरी बाजारपेठ</h2>
+            <p class="subtitle" data-key="market_subtitle">विक्रीसाठी उपलब्ध असलेली शेतकरी उत्पादने।</p>
+            <div class="reco-list" id="farmer-market-listings"></div>
+        </div>
+        
+        <!-- SUBSIDY INFO PAGE -->
+        <div class="screen" id="subsidy-info-page">
+            <h2 class="text-green-600" data-key="subsidy_portal_title">सरकारी योजना पोर्टल</h2>
+            <p class="subtitle" data-key="subsidy_portal_subtitle">तुमच्या भूमिकेनुसार जुळणाऱ्या प्रमुख योजना।</p>
+            <div class="reco-list" id="general-subsidy-list"></div>
+        </div>
+
+        <!-- FARMER: LIST PRODUCT FORM -->
+        <div class="screen" id="list-product-form">
+            <h2 class="text-blue-600" data-key="list_product_form_title">नवीन उत्पादन जोडा</h2>
+            <p class="subtitle" data-key="list_product_form_subtitle">विक्रीसाठी उपलब्ध माल आणि किंमत माहिती प्रविष्ट करा।</p>
+            <form id="product-listing-form">
+                <div class="input-section">
+                    <label for="list-product" data-key="list_p_name_l">उत्पादनाचे नाव:</label>
+                    <input type="text" id="list-product" required placeholder="उदा. हळद पावडर">
+                </div>
+                <div class="input-section">
+                    <label for="list-qty" data-key="list_p_qty_l">उपलब्ध मात्रा (Kg/Quintal):</label>
+                    <input type="number" id="list-qty" required placeholder="उदा. 500">
+                </div>
+                <div class="input-section">
+                    <label for="list-price" data-key="list_p_price_l">विक्री दर (₹ प्रति युनिट):</label>
+                    <input type="number" id="list-price" required placeholder="उदा. 75">
+                </div>
+                <button type="submit" class="action-btn" data-key="btn_list_market">बाजारपेठेत सूचीबद्ध करा</button>
+            </form>
+        </div>
+
+        <!-- TRADER: LIST SHOP REQUEST FORM -->
+        <div class="screen" id="list-shop-form">
+            <h2 class="text-blue-600" data-key="list_req_form_title">खरेदी विनंती नोंदवा</h2>
+            <p class="subtitle" data-key="list_req_form_subtitle">तुम्ही काय शोधत आहात आणि तुमच्या दुकानाची माहिती द्या।</p>
+            <form id="shop-listing-form">
+                <div class="input-section">
+                    <label for="list-shop-name" data-key="list_s_name_l">तुमच्या दुकानाचे/संस्थेचे नाव:</label>
+                    <input type="text" id="list-shop-name" required placeholder="उदा. श्रीराम ट्रेडर्स">
+                </div>
+                <div class="input-section">
+                    <label for="list-needs" data-key="list_s_needs_l">तुम्हाला कोणत्या मालाची गरज आहे?</label>
+                    <input type="text" id="list-needs" required placeholder="उदा. 1000 किलो कांदा">
+                </div>
+                <button type="submit" class="action-btn" data-key="btn_publish_req">विनंती प्रकाशित करा</button>
+            </form>
+        </div>
+        
+        <!-- Production and Pricing screens -->
+        <div class="screen" id="production">
+            <h2 class="text-blue-600" data-key="prod_planner_title">उत्पादन नियोजक (Production Planner)</h2>
+            <p class="subtitle" data-key="prod_planner_subtitle">तुमचा जमिनीचा प्रकार आणि अपेक्षित पाऊस निवडा:</p>
+
+            <div class="input-section">
+                <label for="soil-type" data-key="label_soil">जमिनीचा प्रकार (Soil Type):</label>
+                <select id="soil-type">
+                    <option value="Black">काळी माती (Black Soil)</option>
+                    <option value="Red">लाल माती (Red Soil)</option>
+                    <option value="Alluvial">गाळाची माती (Alluvial Soil)</option>
+                </select>
+            </div>
+            <div class="input-section">
+                <label for="rainfall" data-key="label_rain">अपेक्षित पाऊस (Expected Rainfall):</label>
+                <select id="rainfall">
+                    <option value="High">जास्त (High)</option>
+                    <option value="Medium">मध्यम (Medium)</option>
+                    <option value="Low">कमी (Low)</option>
+                </select>
+            </div>
+
+            <button class="action-btn" onclick="runKNN()" data-key="btn_get_reco">शिफारस मिळवा (Get Recommendation)</button>
+
+            <div class="reco-list" id="production-recommendations">
+                <p style="text-align: center; color: #666;" data-key="prod_initial_text">वरचे बटण दाबून शिफारस मिळवा।</p>
+            </div>
+        </div>
+
+        <div class="screen" id="pricing">
+            <h2 class="text-blue-600" data-key="price_title">📈 विक्री आणि दर विश्लेषण</h2>
+            <p class="subtitle" data-key="price_subtitle">तुमच्या उत्पादनाचा बाजार दर आणि विक्रीची माहिती प्रविष्ट करा।</p>
+
+            <div class="input-section">
+                <label for="product-select" data-key="list_p_name_l_p">उत्पादनाचे नाव (Product Name):</label>
+                <select id="product-select" required>
+                    <option value="" data-key="price_select_p">-- उत्पादन निवडा --</option>
+                    <option value="Tomato">टॉमेटो (Tomato)</option>
+                    <option value="Onion">कांदा (Onion)</option>
+                    <option value="Turmeric">हळद (Turmeric)</option>
+                    <option value="Sugarcane">ऊस (Sugarcane)</option>
+                </select>
+            </div>
+            
+            <div class="input-section">
+                <label for="quantity" data-key="list_p_qty_l_p">उपलब्ध मात्रा (Quantity - Kg/L):</label>
+                <input type="number" id="quantity" value="100" required placeholder="उदा। 100">
+            </div>
+
+            <div class="input-section">
+                <label for="cost" data-key="price_cost_l">उत्पादन खर्च (Cost/Kg - ₹):</label>
+                <input type="number" id="cost" value="15" required placeholder="उदा। 15">
+            </div>
+
+            <div class="input-section">
+                <label for="user-price-input" data-key="price_your_price_l">तुमचा अपेक्षित दर (Your Price - ₹/Kg):</label>
+                <input type="number" id="user-price-input" value="35" required placeholder="उदा। 35">
+            </div>
+
+            <button class="action-btn" onclick="runPricingAdvisor()" data-key="btn_analyze_price">दर विश्लेषण करा (Analyze Price & List)</button> 
+
+            <div id="price-result-message" style="display:none; margin-top: 20px;">
+                <div id="price-comparison-alert" class="comparison-alert"></div>
+            </div>
+
+            <div class="reco-list">
+                <div class="reco-item best-price">
+                    <h4 data-key="price_reco_h">शिफारस केलेला दर (Recommended Price Range)</h4>
+                    <p class="price-range" data-key="price_reco_init">**विश्लेषण करण्यासाठी बटण दाबा**</p>
+                    <p class="small-text" data-key="price_reco_p">बाजारातील मागणी आणि खर्चावर आधारित।</p>
+                </div>
+            </div>
+            
+            <p class="current-market-data">
+                <span data-key="price_current_p1">**उत्पादन:** -- </span><br>
+                <span data-key="price_current-p2">**लाइव्ह APMC दर:** -- </span><br>
+                <span data-key="price_current-p3">**आपला उत्पादन खर्च:** -- </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // =================================================================
+        // 1. LANGUAGE DATA & STATE
+        // =================================================================
+
+        let currentLang = localStorage.getItem('appLang') || 'mr';
+
+        const LANGUAGES = {
+            'mr': {
+                'app_title': 'ग्राम-लाभ मार्गदर्शक',
+                'loading_title': 'लोड होत आहे...',
+                'loading_subtitle': 'स्थानिक डेटा तपासत आहे...',
+                'welcome_title': '👋 ग्राम-लाभ मध्ये आपले स्वागत!',
+                'register_subtitle': 'सेवा वापरण्यासाठी कृपया नोंदणी करा।',
+                'label_name': 'नाव (Full Name):', 'label_phone': 'फोन नंबर (Phone):', 'label_taluka': 'तालुका (Taluka):',
+                'btn_next': 'पुढील चरण →',
+                'role_select_title': 'आपली भूमिका निवडा', 'role_select_subtitle': 'तुम्ही मुख्यतः काय आहात?',
+                'role_farmer_h': 'शेतकरी / विक्रेता', 'role_farmer_p': 'उत्पादन, किंमत आणि अनुदान सल्ला हवा।',
+                'role_trader_h': 'व्यापारी / खरेदीदार', 'role_trader_p': 'बाजार दर, मागणी आणि लॉजिस्टिक्स माहिती हवी।',
+                'dash_planner_h': 'नियोजक', 'dash_planner_p': 'उत्पादन सल्ला',
+                'dash_subsidy_h': 'अनुदान', 'dash_subsidy_p': 'योजना तपासा',
+                'dash_price_h': 'दर विश्लेषण', 'dash_price_p': 'किंमत ठरवा', 'dash_price_t_p': 'खरेदीची किंमत ठरवा',
+                'dash_add_p_h': 'उत्पादन जोडा', 'dash_add_p_p': 'विक्रीसाठी लिस्ट करा',
+                'dash_buyer_req_h': 'खरेदीदार विनंत्या', 'dash_buyer_req_p': 'मागणी पहा',
+                'dash_add_req_h': 'विनंती नोंदवा', 'dash_add_req_p': 'माल खरेदीची विनंती',
+                'dash_market_h': 'स्थानिक बाजारपेठ', 'dash_market_p': 'शेतकरी उत्पादने',
+                'dash_my_listing': '⚡ माझी लिस्टिंग (My Products)',
+                'dash_my_req': '📢 माझ्या विनंत्या (My Requests)',
+                'switch_farmer': 'शेतकरी (Farmer)', 'switch_trader': 'व्यापारी (Trader)', 'switch_reset': '🚫 नवीन नोंदणी करा',
+                'profile_title': 'माझा प्रोफाइल (My Profile)',
+                'label_name_p': 'नाव:', 'label_phone_p': 'फोन नंबर:', 'label_taluka_p': 'तालुका:', 'label_role_p': 'भूमिका:',
+                'btn_back': 'मागे जा',
+                'buyer_req_title': 'खरेदीदार विनंत्या (Buyer Requests)', 'buyer_req_subtitle': 'तुमच्या मालाची मागणी करणारे व्यापारी।',
+                'market_title': '🛒 स्थानिक शेतकरी बाजारपेठ', 'market_subtitle': 'विक्रीसाठी उपलब्ध असलेली शेतकरी उत्पादने।',
+                'subsidy_portal_title': 'सरकारी योजना पोर्टल', 'subsidy_portal_subtitle': 'तुमच्या भूमिकेनुसार जुळणाऱ्या प्रमुख योजना।',
+                'list_product_form_title': 'नवीन उत्पादन जोडा', 'list_product_form_subtitle': 'विक्रीसाठी उपलब्ध माल आणि किंमत माहिती प्रविष्ट करा।',
+                'list_p_name_l': 'उत्पादनाचे नाव:', 'list_p_qty_l': 'उपलब्ध मात्रा (Kg/Quintal):', 'list_p_price_l': 'विक्री दर (₹ प्रति युनिट):',
+                'btn_list_market': 'बाजारपेठेत सूचीबद्ध करा',
+                'list_req_form_title': 'खरेदी विनंती नोंदवा', 'list_req_form_subtitle': 'तुम्ही काय शोधत आहात आणि तुमच्या दुकानाची माहिती द्या।',
+                'list_s_name_l': 'तुमच्या दुकानाचे/संस्थेचे नाव:', 'list_s_needs_l': 'तुम्हाला कोणत्या मालाची गरज आहे?',
+                'btn_publish_req': 'विनंती प्रकाशित करा',
+                'prod_planner_title': 'उत्पादन नियोजक (Production Planner)', 'prod_planner_subtitle': 'तुमचा जमिनीचा प्रकार आणि अपेक्षित पाऊस निवडा:',
+                'label_soil': 'जमिनीचा प्रकार (Soil Type):', 'label_rain': 'अपेक्षित पाऊस (Expected Rainfall):',
+                'btn_get_reco': 'शिफारस मिळवा (Get Recommendation)', 'prod_initial_text': 'वरचे बटण दाबून शिफारस मिळवा।',
+                'price_title': '📈 विक्री आणि दर विश्लेषण', 'price_subtitle': 'तुमच्या उत्पादनाचा बाजार दर आणि विक्रीची माहिती प्रविष्ट करा।',
+                'list_p_name_l_p': 'उत्पादनाचे नाव (Product Name):', 'list_p_qty_l_p': 'उपलब्ध मात्रा (Quantity - Kg/L):', 'price_cost_l': 'उत्पादन खर्च (Cost/Kg - ₹):',
+                'price_your_price_l': 'तुमचा अपेक्षित दर (Your Price - ₹/Kg):', 'btn_analyze_price': 'दर विश्लेषण करा (Analyze Price & List)',
+                'price_select_p': '-- उत्पादन निवडा --', 'price_reco_h': 'शिफारस केलेला दर (Recommended Price Range)',
+                'price_reco_init': '**विश्लेषण करण्यासाठी बटण दाबा**', 'price_reco_p': 'बाजारातील मागणी आणि खर्चावर आधारित।',
+                'price_current_p1': '**उत्पादन:** --', 'price_current_p2': '**लाइव्ह APMC दर:** --', 'price_current_p3': '**आपला उत्पादन खर्च:** --',
+                'knn_profit': 'प्रॉफिट अनुमान (Est. Profit):', 'knn_water': 'पाण्याची गरज (Water Need):', 'knn_match': 'सरकारी योजना जुळली!',
+                'market_unit': '₹ प्रति युनिट', 'market_seller': 'विक्रेता', 'market_qty': 'Kg', 'req_contact': '📞 संपर्क',
+                'req_needs': 'गरज:', 'req_trader': 'व्यापारी:', 'req_shop': 'दुकान:',
+                'dash_my_products': 'माझे सूचीबद्ध माल', 'dash_my_requests': 'माझ्या स्थानिक विनंत्या',
+                'default_taluka_name': 'शिरूर',
+                'home_welcome': '👋 नमस्ते,',
+                'home_welcome_role': 'भूमिका'
+            },
+            'en': {
+                'app_title': 'Gram-Labh Navigator',
+                'loading_title': 'Loading...',
+                'loading_subtitle': 'Checking Local Data...',
+                'welcome_title': '👋 Welcome to Gram-Labh!',
+                'register_subtitle': 'Please register to use the service.',
+                'label_name': 'Full Name:', 'label_phone': 'Phone Number:', 'label_taluka': 'Taluka:',
+                'btn_next': 'Next Step →',
+                'role_select_title': 'Select Your Role', 'role_select_subtitle': 'What is your primary role?',
+                'role_farmer_h': 'Farmer / Seller', 'role_farmer_p': 'Needs advice on production, pricing, and subsidies.',
+                'role_trader_h': 'Trader / Buyer', 'role_trader_p': 'Needs market rates, demand, and logistics info.',
+                'dash_planner_h': 'Planner', 'dash_planner_p': 'Production Advice',
+                'dash_subsidy_h': 'Grants', 'dash_subsidy_p': 'Check Schemes',
+                'dash_price_h': 'Price Analysis', 'dash_price_p': 'Set Sale Price', 'dash_price_t_p': 'Set Purchase Price',
+                'dash_add_p_h': 'Add Product', 'dash_add_p_p': 'List for Sale',
+                'dash_buyer_req_h': 'Buyer Requests', 'dash_buyer_req_p': 'View Demand',
+                'dash_add_req_h': 'Post Request', 'dash_add_req_p': 'Request Goods',
+                'dash_market_h': 'Local Market', 'dash_market_p': 'Farmer Products',
+                'dash_my_listing': '⚡ My Listings (Products)',
+                'dash_my_req': '📢 My Requests (Needs)',
+                'switch_farmer': 'Farmer', 'switch_trader': 'Trader', 'switch_reset': '🚫 New Registration',
+                'profile_title': 'My Profile',
+                'label_name_p': 'Name:', 'label_phone_p': 'Phone Number:', 'label_taluka_p': 'Taluka:', 'label_role_p': 'Role:',
+                'btn_back': 'Go Back',
+                'buyer_req_title': 'Buyer Requests', 'buyer_req_subtitle': 'Traders demanding your goods (Contact immediately).',
+                'market_title': '🛒 Local Farmer Market', 'market_subtitle': 'Available goods listed by farmers.',
+                'subsidy_portal_title': 'Government Schemes Portal', 'subsidy_portal_subtitle': 'Major schemes matched to your role.',
+                'list_product_form_title': 'Add New Product', 'list_product_form_subtitle': 'Enter details and price for sale.',
+                'list_p_name_l': 'Product Name:', 'list_p_qty_l': 'Quantity (Kg/Quintal):', 'list_p_price_l': 'Sale Price (₹ per unit):',
+                'btn_list_market': 'List on Marketplace',
+                'list_req_form_title': 'Post Purchase Request', 'list_req_form_subtitle': 'What you are looking for and your shop details.',
+                'list_s_name_l': 'Shop/Company Name:', 'list_s_needs_l': 'What goods do you need?',
+                'btn_publish_req': 'Publish Request',
+                'prod_planner_title': 'Production Planner', 'prod_planner_subtitle': 'Select your soil type and expected rainfall:',
+                'label_soil': 'Soil Type:', 'label_rain': 'Expected Rainfall:',
+                'btn_get_reco': 'Get Recommendation', 'prod_initial_text': 'Press the button above for recommendations.',
+                'price_title': '📈 Sale & Price Analysis', 'price_subtitle': 'Enter your cost and price information for market analysis.',
+                'list_p_name_l_p': 'Product Name:', 'list_p_qty_l_p': 'Quantity (Kg/L):', 'price_cost_l': 'Production Cost (Cost/Kg - ₹):',
+                'price_your_price_l': 'Your Expected Price (Your Price - ₹/Kg):', 'btn_analyze_price': 'Analyze Price & List',
+                'price_select_p': '-- Select Product --', 'price_reco_h': 'Recommended Price Range',
+                'price_reco_init': '**Press button to analyze**', 'price_reco_p': 'Based on market demand and cost.',
+                'price_current_p1': '**Product:** --', 'price_current_p2': '**Live APMC Rate:** --', 'price_current_p3': '**Your Production Cost:** --',
+                'knn_profit': 'Est. Profit:', 'knn_water': 'Water Need:', 'knn_match': 'Govt Scheme Matched!',
+                'market_unit': '₹ per Unit', 'market_seller': 'Seller:', 'market_qty': 'Kg', 'req_contact': '📞 Contact',
+                'req_needs': 'Needs:', 'req_trader': 'Trader:', 'req_shop': 'Shop:',
+                'dash_my_products': 'My Listed Products', 'dash_my_requests': 'My Local Requests',
+                'default_taluka_name': 'Shirur',
+                'home_welcome': '👋 Hello,',
+                'home_welcome_role': 'Role'
+            }
+        };
+
+        function getText(key) {
+            // Returns the localized text or the key if translation is missing
+            return LANGUAGES[currentLang][key] || key;
+        }
+
+        function switchLanguage() {
+            // Toggle language code
+            currentLang = currentLang === 'mr' ? 'en' : 'mr';
+            localStorage.setItem('appLang', currentLang);
+            // Re-render everything
+            applyLanguage();
+            // Go back to current screen to force rendering of dynamic content
+            showScreen(document.querySelector('.screen.active').id);
+        }
+
+        function applyLanguage() {
+            // Update static elements based on data-key attribute
+            document.querySelectorAll('[data-key]').forEach(el => {
+                el.innerHTML = getText(el.getAttribute('data-key'));
+            });
+            
+            // Update the language toggle button text
+            document.getElementById('lang-button').innerText = currentLang === 'mr' ? 'EN' : 'मराठी';
+        }
+
+        // =================================================================
+        // 2. DATASETS & RULES (Simulating Database)
+        // =================================================================
+
+        const NEIGHBORS = [
+            { id: 1, soil: 'Black', rainfall: 'Medium', crop: 'Sugarcane', profit: 25, water: 'जास्त', subsidy_key: 'HIGH_GRANT' },
+            { id: 2, soil: 'Black', rainfall: 'Low', crop: 'Cotton', profit: 20, water: 'कमी', subsidy_key: 'LOW_RISK' },
+            { id: 3, soil: 'Black', rainfall: 'Medium', crop: 'Onion', profit: 18, water: 'मध्यम', subsidy_key: 'MAHADB_LINKED' },
+            { id: 4, soil: 'Red', rainfall: 'High', crop: 'Mangoes (Horticulture)', profit: 30, water: 'मध्यम', subsidy_key: 'HORTICULTURE_SCHEME' },
+            { id: 5, soil: 'Red', rainfall: 'Medium', crop: 'Groundnut', profit: 17, water: 'कमी', subsidy_key: 'LOW_RISK' },
+            { id: 6, soil: 'Red', rainfall: 'High', crop: 'Turmeric', profit: 22, water: 'जास्त', subsidy_key: 'HIGH_GRANT' },
+            { id: 7, soil: 'Alluvial', rainfall: 'High', crop: 'Paddy (Rice)', profit: 15, water: 'जास्त', subsidy_key: 'LOW_RISK' },
+            { id: 10, soil: 'Alluvial', rainfall: 'Low', crop: 'Brinjal', profit: 16, water: 'कमी', subsidy_key: 'NONE' },
+        ];
+        const SUBSIDY_SCHEMES = { 
+            'HIGH_GRANT': { scheme_name: 'मुख्यमंत्री कृषी अनुदान', benefit: '30% भांडवली अनुदान', color: '#28a745', link: 'https://krishi.maharashtra.gov.in/en/schemes' },
+            'MAHADB_LINKED': { scheme_name: 'महानिर्मिती शेतकरी पोर्टल', benefit: 'सरकारी खरेदी हमी', color: '#17a2b8', link: 'https://mahadbtmahait.gov.in/Home/Index' },
+            'HORTICULTURE_SCHEME': { scheme_name: 'फळबागा विकास योजना', benefit: '५०% ठिबक सिंचन अनुदान', color: '#28a745', link: 'https://horticulture.maharashtra.gov.in/' },
+            'LOW_RISK': { scheme_name: 'पीक विमा योजना', benefit: 'शून्य ते कमी प्रीमियम', color: '#ffc107', link: 'https://pmfby.gov.in/' },
+            'NONE': { scheme_name: 'सध्या कोणतीही योजना नाही', benefit: 'स्थानिक अधिकारी/ग्रामसेवक तपासा', color: '#dc3545', link: '#' }
+        };
+        const APMC_LIVE_RATES = {
+            'Tomato': 25.50, 'Onion': 18.00, 'Turmeric': 90.00, 'Sugarcane': 35.00, 'Default': 30.00
+        };
+        const PROFIT_RULES = {
+            COST_MARKUP_PERCENT: 0.15, MIN_PROFIT_MARGIN: 0.20, RANGE_SPREAD: 0.05
+        };
+        const STATIC_ACCOUNTS = {
+            'farmer': { userName: 'रमा पाटील', userRole: 'Farmer/Seller', userPhone: '9876543210', userTaluka: 'शिरूर' },
+            'trader': { userName: 'मोहन ट्रेडर्स', userRole: 'Trader', userPhone: '9988776655', userTaluka: 'दौंड' }
+        };
+        const TRADER_DUMMY_REQUESTS = [
+            { shopName: 'साई कोल्ड स्टोरेज', needs: '5000 किलो हळद (Urgent)', trader: 'निखिल', phone: '9000111222', taluka: 'बारामती', date: '04/10/2025' },
+            { shopName: 'गणेश किराणा', needs: '100 किलो टोमॅटो', trader: 'सुरेश', phone: '9000333444', taluka: 'शिरूर', date: '05/10/2025' },
+        ];
+        const FARMER_DUMMY_PRODUCTS = [
+            { product: 'देशी कांदा', quantity: 200, price: 21.00, seller: 'बाळासाहेब', phone: '9111222333', taluka: 'जुन्नर', date: '04/10/2025' },
+            { product: 'ऊस (Sugarcane)', quantity: 15, price: 34.00, seller: 'संदीप', phone: '9555666777', taluka: 'दौंड', date: '05/10/2025' },
+        ];
+
+        // =================================================================
+        // 3. CORE UTILITY FUNCTIONS (Needed for hoisting and immediate calls)
+        // =================================================================
+        
+        function getProfileData() {
+            return {
+                userName: localStorage.getItem('userName'),
+                userRole: localStorage.getItem('userRole'),
+                userPhone: localStorage.getItem('userPhone'),
+                userTaluka: localStorage.getItem('userTaluka')
+            };
+        }
+
+        function getListings(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveListings(key, listings) {
+            localStorage.setItem(key, JSON.stringify(listings));
+        }
+
+        function goBack() {
+            const userRole = localStorage.getItem('userRole');
+            if (userRole === 'Farmer/Seller') { showScreen('farmer-dashboard'); } 
+            else if (userRole === 'Trader') { showScreen('trader-dashboard'); } 
+            else { showScreen('onboarding'); }
+        }
+
+        function updateDashboardHeaders(name, role) {
+            const taluka = localStorage.getItem('userTaluka') || getText('default_taluka_name');
+            const welcomeId = role === 'Farmer/Seller' ? 'farmer-welcome' : 'trader-welcome';
+            const infoId = role === 'Farmer/Seller' ? 'farmer-info-display' : 'trader-info-display';
+            
+            if(document.getElementById(welcomeId)) { 
+                document.getElementById(welcomeId).innerHTML = `${getText('home_welcome')} ${name}!`;
+                document.getElementById(infoId).innerHTML = `${getText('home_welcome_role')}: ${role} | ${getText('label_taluka_p')}: ${taluka}`;
+            }
+        }
+
+        function initializeDummyData() {
+            if (!localStorage.getItem('dummySeeded')) {
+                saveListings('farmProducts', FARMER_DUMMY_PRODUCTS);
+                saveListings('traderShops', TRADER_DUMMY_REQUESTS);
+                localStorage.setItem('dummySeeded', 'true');
+            }
+        }
+
+        function checkUserStatus() {
+            const { userName, userRole } = getProfileData();
+            if (userRole) {
+                updateDashboardHeaders(userName, userRole);
+                showScreen(userRole === 'Farmer/Seller' ? 'farmer-dashboard' : 'trader-dashboard');
+            } else if (userName) {
+                showScreen('role-select');
+            } else {
+                showScreen('onboarding');
+            }
+        }
+        
+        // =================================================================
+        // 4. NAVIGATION AND STATE LOGIC
+        // =================================================================
+        
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+
+            document.getElementById('quick-switch-modal').style.display = 'none';
+
+            // DYNAMIC TITLE UPDATE
+            const titleElement = document.getElementById(screenId).querySelector('h2[data-key]');
+            const headerTitle = titleElement ? getText(titleElement.getAttribute('data-key')) : getText('app_title');
+            document.getElementById('header-title').innerText = headerTitle;
+            
+            const hideHeader = (screenId === 'onboarding' || screenId === 'role-select');
+            document.getElementById('app-header').style.display = hideHeader ? 'none' : 'flex';
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.style.display = (screenId === 'loading' || hideHeader) ? 'none' : 'block';
+            }
+
+            // Render logic based on the destination screen
+            if (screenId === 'farmer-dashboard') {
+                renderFarmDashboard();
+            } else if (screenId === 'trader-dashboard') {
+                renderTraderDashboard();
+            } else if (screenId === 'competition') {
+                renderFarmerMarket(); 
+            } else if (screenId === 'trader-requests-for-farmer') {
+                renderTraderRequestsForFarmer();
+            } else if (screenId === 'user-profile') { 
+                fillProfileForm(); 
+            } else if (screenId === 'subsidy-info-page') { 
+                renderSubsidyInfo();
+            }
+            // Ensure static content updates its language after screen switch
+            applyLanguage();
+        }
+
+        // --- AUTH/ONBOARDING FUNCTIONS ---
+
+        function selectRole(role) {
+            localStorage.setItem('userRole', role);
+            const userName = localStorage.getItem('userName');
+            
+            updateDashboardHeaders(userName, role);
+            showScreen(role === 'Farmer/Seller' ? 'farmer-dashboard' : 'trader-dashboard');
+        }
+
+
+        // --- PROFILE FUNCTIONS ---
+
+        function showProfile() { 
+            fillProfileForm(); 
+            showScreen('user-profile'); 
+        }
+
+        function fillProfileForm() {
+            document.getElementById('profile-name').value = localStorage.getItem('userName') || '';
+            document.getElementById('profile-phone').value = localStorage.getItem('userPhone') || '';
+            document.getElementById('profile-taluka').value = localStorage.getItem('userTaluka') || '';
+            document.getElementById('profile-role').value = localStorage.getItem('userRole') || '';
+        }
+
+        // --- ACCOUNT SWITCHING ---
+
+        function toggleQuickSwitchModal() {
+            const modal = document.getElementById('quick-switch-modal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function quickSwitchAccount(roleKey) {
+            const accountData = STATIC_ACCOUNTS[roleKey];
+            localStorage.clear();
+            localStorage.setItem('userName', accountData.userName);
+            localStorage.setItem('userRole', accountData.userRole);
+            localStorage.setItem('userPhone', accountData.userPhone);
+            localStorage.setItem('userTaluka', accountData.userTaluka);
+            
+            // Reloads the app state for the new user
+            checkUserStatus(); 
+        }
+
+        // =================================================================
+        // 5. FEATURE LOGIC (Updated to use getText())
+        // =================================================================
+
+        // --- KNN Production Planner ---
+        function runKNN() {
+            const userSoil = document.getElementById('soil-type').value;
+            const userRainfall = document.getElementById('rainfall').value;
+            const recommendationsDiv = document.getElementById('production-recommendations');
+            
+            // KNN Simulation Logic (unchanged)
+            const soilMap = { 'Black': 3, 'Red': 2, 'Alluvial': 1 };
+            const rainfallMap = { 'High': 3, 'Medium': 2, 'Low': 1 };
+            const userFeature = [soilMap[userSoil], rainfallMap[userRainfall]];
+
+            const neighborsWithDistance = NEIGHBORS.map(neighbor => {
+                let distance = 0;
+                if (soilMap[neighbor.soil] !== userFeature[0]) distance += 1;
+                if (rainfallMap[neighbor.rainfall] !== userFeature[1]) distance += 1;
+                distance -= (neighbor.profit / 100); 
+                return { ...neighbor, distance: distance };
+            });
+
+            const K = 3;
+            neighborsWithDistance.sort((a, b) => {
+                if (a.distance !== b.distance) { return a.distance - b.distance; }
+                return b.profit - a.profit; 
+            });
+            const topRecommendations = neighborsWithDistance.slice(0, K);
+            let htmlContent = '';
+            
+            topRecommendations.forEach((reco, index) => {
+                const rankText = index === 0 ? '🥇' : (index === 1 ? '🥈' : '🥉');
+                const bestClass = index === 0 ? 'best' : '';
+                const subsidyInfo = SUBSIDY_SCHEMES[reco.subsidy_key];
+                
+                htmlContent += `
+                    <div class="reco-item ${bestClass}">
+                        <span class="reco-icon">${rankText}</span>
+                        <h4>${reco.crop}</h4>
+                        <p>🔥 **${getText('knn_profit')}:** ${reco.profit}%</p>
+                        <p>💧 **${getText('knn_water')}:** ${reco.water}</p>
+                        <div class="subsidy-box" style="border-left-color: ${subsidyInfo.color};">
+                            **${getText('knn_match')}!**
+                            <span class="scheme-name">Scheme: ${subsidyInfo.scheme_name}</span>
+                            <span class="scheme-name">Benefit: ${subsidyInfo.benefit}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            recommendationsDiv.innerHTML = htmlContent;
+        }
+
+        // --- Pricing Advisor ---
+        function runPricingAdvisor() {
+            const productName = document.getElementById('product-select').value;
+            const costInput = parseFloat(document.getElementById('cost').value);
+            const quantityInput = parseFloat(document.getElementById('quantity').value);
+            const userPriceInput = parseFloat(document.getElementById('user-price-input').value);
+            
+            if (!productName || isNaN(costInput) || isNaN(quantityInput) || isNaN(userPriceInput)) {
+                alert(currentLang === 'mr' ? "कृपया उत्पादन निवडा आणि सर्व संख्यात्मक माहिती भरा।" : "Please select a product and fill in all numerical information."); 
+                return;
+            }
+
+            const liveApmcRate = APMC_LIVE_RATES[productName] || APMC_LIVE_RATES['Default'];
+            const basePrice = liveApmcRate;
+            const costPlusMarkup = costInput * (1 + PROFIT_RULES.COST_MARKUP_PERCENT);
+            const priceWithMinProfit = costInput / (1 - PROFIT_RULES.MIN_PROFIT_MARGIN);
+            const optimalPrice = Math.ceil(Math.max(basePrice, costPlusMarkup, priceWithMinProfit));
+
+            const spreadAmount = optimalPrice * PROFIT_RULES.RANGE_SPREAD;
+            const lowerBound = Math.floor(optimalPrice - spreadAmount);
+            const upperBound = Math.ceil(optimalPrice + spreadAmount);
+
+            let comparisonAlertHTML = '';
+            let comparisonClass = '';
+            
+            // Logic for comparison alerts (updated to use getText)
+            if (userPriceInput < lowerBound * 0.95) { 
+                comparisonClass = 'alert-low';
+                comparisonAlertHTML = currentLang === 'mr' ? `**❌ सावध रहा!** तुमचा दर बाजारापेक्षा **खूप कमी** आहे। तुम्हाला ₹${lowerBound.toFixed(2)} पर्यंत नफा मिळू शकतो।` : `**❌ Warning!** Your price is **too low**. You could potentially earn up to ₹${lowerBound.toFixed(2)}.`;
+            } else if (userPriceInput > upperBound * 1.1) { 
+                comparisonClass = 'alert-high';
+                comparisonAlertHTML = currentLang === 'mr' ? `**⚠️ जास्त दर!** तुमचा दर बाजारात टिकणार नाही। शिफारस केलेले दर वापरा।` : `**⚠️ Too High!** Your price won't be competitive. Use the recommended range.`;
+            } else { 
+                comparisonClass = 'alert-ok';
+                comparisonAlertHTML = currentLang === 'mr' ? `**✅ दर योग्य!** तुमचा दर शिफारस केलेल्या श्रेणीत आहे।` : `**✅ Price is Good!** Your price is within the recommended range.`;
+            }
+
+            document.querySelector('#pricing .price-range').innerHTML = 
+                `**₹ ${lowerBound.toFixed(2)} - ₹ ${upperBound.toFixed(2)} / ${currentLang === 'mr' ? 'किलो' : 'Kg'}**`;
+            
+            document.getElementById('price-comparison-alert').className = `comparison-alert ${comparisonClass}`;
+            document.getElementById('price-comparison-alert').innerHTML = comparisonAlertHTML;
+            
+            document.querySelector('#pricing .current-market-data').innerHTML = 
+                `${getText('price_current_p1')}: ${productName} (${quantityInput} ${getText('market_qty')}) <br>` +
+                `${getText('price_current_p2')}: ₹ ${liveApmcRate.toFixed(2)} / ${currentLang === 'mr' ? 'किलो' : 'Kg'} <br>` +
+                `${getText('price_current_p3')}: ₹ ${costInput.toFixed(2)} / ${currentLang === 'mr' ? 'किलो' : 'Kg'}`;
+
+            document.getElementById('price-result-message').style.display = 'block';
+        }
+
+        // --- Marketplace Rendering Functions (Local Storage) ---
+
+        function renderFarmDashboard() { 
+            const myName = localStorage.getItem('userName');
+            const allProducts = getListings('farmProducts');
+            const myProducts = allProducts.filter(p => p.seller === myName);
+            const container = document.getElementById('my-farm-listings');
+            const emptyText = currentLang === 'mr' ? 'सध्या कोणताही माल सूचीबद्ध नाही।' : 'No products currently listed.';
+
+            if (myProducts.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-600">${emptyText}</p>`;
+                return;
+            }
+
+            container.innerHTML = myProducts.map(p => `
+                <div class="reco-item comp-item p-3 shadow-sm border-l-4 border-green-500">
+                    <h4 class="font-bold">${p.product} (${p.quantity} ${getText('market_qty')})</h4>
+                    <p class="text-sm text-gray-700">💰 ${getText('price_your_price_l')}: ₹ ${p.price} / ${getText('market_unit')}</p>
+                    <p class="text-xs text-gray-500">📍 ${currentLang === 'mr' ? 'लिस्टिंग तारीख' : 'Listing Date'}: ${p.date}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderTraderDashboard() {
+            const myName = localStorage.getItem('userName');
+            const allRequests = getListings('traderShops');
+            const myRequests = allRequests.filter(r => r.trader === myName);
+            const container = document.getElementById('my-trader-requests');
+            const emptyText = currentLang === 'mr' ? 'सध्या कोणतीही खरेदी विनंती नोंदवलेली नाही।' : 'No purchase requests currently recorded.';
+
+            if (myRequests.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-600">${emptyText}</p>`;
+                return;
+            }
+
+            container.innerHTML = myRequests.map(r => `
+                <div class="reco-item comp-item p-3 shadow-sm border-l-4 border-blue-500">
+                    <h4 class="font-bold">${r.shopName}</h4>
+                    <p class="text-sm text-gray-700">🔍 ${getText('req_needs')}: ${r.needs}</p>
+                    <p class="text-xs text-gray-500">📍 ${currentLang === 'mr' ? 'तारीख' : 'Date'}: ${r.date}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderTraderRequestsForFarmer() {
+            const allRequests = getListings('traderShops'); 
+            const container = document.getElementById('trader-request-listings');
+            const emptyText = currentLang === 'mr' ? 'सध्या कोणतीही व्यापारी विनंती उपलब्ध नाही।' : 'No trader requests available.';
+
+            if (allRequests.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-600">${emptyText}</p>`;
+                return;
+            }
+
+            container.innerHTML = allRequests.map(r => `
+                <div class="reco-item best-price p-3 shadow-md bg-blue-50">
+                    <h4 class="text-lg font-bold text-blue-800">${r.shopName}</h4>
+                    <p class="text-sm text-gray-700 mb-2">🔍 ${getText('req_needs')}: **${r.needs}**</p>
+                    <p class="text-xs text-gray-600">🚚 ${getText('req_trader')}: ${r.trader} (${r.taluka})</p>
+                    <div class="subsidy-box mt-2 border-l-4 border-blue-800 bg-white">
+                        **${getText('req_contact')}:** <a href="tel:${r.phone}" class="text-blue-600 font-bold">${r.phone}</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFarmerMarket() {
+            const allProducts = getListings('farmProducts'); 
+            const container = document.getElementById('farmer-market-listings');
+            const emptyText = currentLang === 'mr' ? 'सध्या विक्रीसाठी कोणताही माल सूचीबद्ध नाही।' : 'No goods currently listed for sale.';
+
+            if (allProducts.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-600">${emptyText}</p>`;
+                return;
+            }
+
+            container.innerHTML = allProducts.map(p => `
+                <div class="reco-item best p-3 shadow-md bg-green-50">
+                    <span class="reco-icon">🛒</span>
+                    <h4 class="text-lg font-bold text-green-800">${p.product} | ${p.quantity} ${getText('market_qty')}</h4>
+                    <p class="text-sm text-gray-700 mb-2">💰 ${currentLang === 'mr' ? 'मागितलेला दर' : 'Asking Price'}: **₹ ${p.price} / ${getText('market_unit')}**</p>
+                    <p class="text-xs text-gray-600">🧑‍🌾 ${getText('market_seller')}: ${p.seller} (${p.taluka})</p>
+                    <div class="subsidy-box mt-2 border-l-4 border-green-800 bg-white">
+                        **${getText('req_contact')}:** <a href="tel:${p.phone}" class="text-green-600 font-bold">${p.phone}</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSubsidyInfo() {
+            const container = document.getElementById('general-subsidy-list');
+            let htmlContent = '';
+
+            for (const key in SUBSIDY_SCHEMES) {
+                const scheme = SUBSIDY_SCHEMES[key];
+                if (key === 'NONE') continue; 
+
+                const statusText = scheme.color === '#28a745' ? (currentLang === 'mr' ? 'सक्रिय आणि उच्च लाभ' : 'Active & High Benefit') : (currentLang === 'mr' ? 'सक्रिय' : 'Active');
+                
+                htmlContent += `
+                    <div class="reco-item" style="border-left: 5px solid ${scheme.color};">
+                        <h4>${scheme.scheme_name}</h4>
+                        <p>🎁 **${currentLang === 'mr' ? 'लाभ' : 'Benefit'}:** ${scheme.benefit}</p>
+                        <p>✅ **${currentLang === 'mr' ? 'स्थिती' : 'Status'}:** ${statusText}</p>
+                        <a href="${scheme.link}" target="_blank" class="action-btn view-detail-btn">${currentLang === 'mr' ? 'तपशील पहा' : 'View Details'}</a>
+                    </div>
+                `;
+            }
+            container.innerHTML = htmlContent || `<p class="text-center text-gray-600">${currentLang === 'mr' ? 'सध्या कोणतीही योजना उपलब्ध नाही।' : 'No schemes available at this time.'}</p>`;
+        }
+
+
+        // =================================================================
+        // 6. APP INITIALIZATION & EVENT LISTENERS
+        // =================================================================
+
+        function attachEventListeners() {
+            // 1. Registration Form
+            document.getElementById('reg-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('reg-name').value;
+                const phone = document.getElementById('reg-phone').value;
+                const taluka = document.getElementById('reg-taluka').value;
+                
+                localStorage.setItem('userName', name);
+                localStorage.setItem('userPhone', phone);
+                localStorage.setItem('userTaluka', taluka);
+                showScreen('role-select');
+            });
+
+            // 2. Profile Edit Form 
+            document.getElementById('profile-edit-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Save changes
+                localStorage.setItem('userName', document.getElementById('profile-name').value);
+                localStorage.setItem('userPhone', document.getElementById('profile-phone').value);
+                localStorage.setItem('userTaluka', document.getElementById('profile-taluka').value);
+                
+                alert(currentLang === 'mr' ? "प्रोफाइल तपशील यशस्वीरित्या जतन केला! (Simulation)" : "Profile details successfully saved! (Simulation)");
+                goBack();
+            });
+
+            // 3. Farmer Listing Form
+            document.getElementById('product-listing-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const product = document.getElementById('list-product').value;
+                const qty = document.getElementById('list-qty').value;
+                const price = document.getElementById('list-price').value;
+                
+                const newProduct = {
+                    product: product, quantity: parseFloat(qty), price: parseFloat(price),
+                    seller: localStorage.getItem('userName'), phone: localStorage.getItem('userPhone'),
+                    taluka: localStorage.getItem('userTaluka'), date: new Date().toLocaleDateString('en-IN')
+                };
+                const currentListings = getListings('farmProducts');
+                currentListings.unshift(newProduct);
+                saveListings('farmProducts', currentListings);
+                
+                document.getElementById('product-listing-form').reset();
+                alert(currentLang === 'mr' ? `उत्पादन ${product} सफलतापूर्वक सूचीबद्ध झाले!` : `Product ${product} successfully listed!`);
+                showScreen('farmer-dashboard');
+            });
+
+            // 4. Trader Listing Form
+            document.getElementById('shop-listing-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const shopName = document.getElementById('list-shop-name').value;
+                const needs = document.getElementById('list-needs').value;
+                
+                const newRequest = {
+                    shopName: shopName, needs: needs,
+                    trader: localStorage.getItem('userName'), phone: localStorage.getItem('userPhone'),
+                    taluka: localStorage.getItem('userTaluka'), date: new Date().toLocaleDateString('en-IN')
+                };
+
+                const currentRequests = getListings('traderShops');
+                currentRequests.unshift(newRequest);
+                saveListings('traderShops', currentRequests);
+                
+                document.getElementById('shop-listing-form').reset();
+                alert(currentLang === 'mr' ? `खरेदी विनंती ${shopName} साठी नोंदवली गेली!` : `Purchase request for ${shopName} has been recorded!`);
+                showScreen('trader-dashboard');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentLang = localStorage.getItem('appLang') || 'mr';
+            applyLanguage();
+            initializeDummyData();
+            attachEventListeners();
+            checkUserStatus(); 
+        });
+    </script>
+</body>
+</html>
